@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ProcView</string>
+    <string name="nav_live">实时</string>
+    <string name="nav_history">记录</string>
+    <string name="nav_settings">设置</string>
+    <string name="shizuku_checking_title">正在检查 Shizuku</string>
+    <string name="shizuku_checking_body">只读能力探针将确认当前设备实际开放的数据范围。</string>
+    <string name="metric_cpu">整机 CPU</string>
+    <string name="metric_memory">内存使用</string>
+    <string name="metric_summary_accessibility">整机 CPU 和内存数据暂不可用。</string>
+    <string name="history_empty_title">暂无监控记录</string>
+    <string name="history_empty_body">请从实时页启动一个命名会话，以记录系统上下文和 Top 进程。</string>
+    <string name="settings_baseline_title">本地优先诊断</string>
+    <string name="settings_baseline_body">ProcView 不申请网络权限；采样、历史和导出均保留在本机。</string>
+</resources>

@@ -1,0 +1,54 @@
+# Gradle / Android build output
+.gradle/
+.gradle-user-home/
+.android-user-home/
+.user-home/
+build/
+**/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Machine-local Android configuration
+local.properties
+*/local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+captures/
+.navigation/
+
+# Kotlin / native tooling
+.kotlin/
+.externalNativeBuild/
+.cxx/
+
+# Signing material and secrets
+*.jks
+*.keystore
+*.pem
+keystore.properties
+secrets.properties
+google-services.json
+
+# Reports and local diagnostics
+*.hprof
+*.stackdump
+*.log
+reports/
+
+# Editors and operating systems
+.vscode/
+.zcode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+*.orig
+*.bak
+*.tmp
