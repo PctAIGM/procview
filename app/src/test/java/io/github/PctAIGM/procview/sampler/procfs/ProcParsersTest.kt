@@ -7,6 +7,40 @@ import org.junit.Test
 
 class ProcParsersTest {
     @Test
+    fun systemCpuUsesAggregateFieldsWithoutDoubleCountingGuestTime() {
+        val cpu = ProcParsers.parseSystemCpuStat(
+            "cpu  100 20 30 400 50 6 7 8 999 999\ncpu0 1 2 3 4",
+        )
+
+        requireNotNull(cpu)
+        assertEquals(621L, cpu.totalTicks)
+        assertEquals(450L, cpu.idleTicks)
+    }
+
+    @Test
+    fun systemCpuRejectsMissingNegativeAndOverflowingCounters() {
+        assertNull(ProcParsers.parseSystemCpuStat("intr 1 2 3"))
+        assertNull(ProcParsers.parseSystemCpuStat("cpu 1 2 3 -1 5 6 7 8"))
+        assertNull(
+            ProcParsers.parseSystemCpuStat(
+                "cpu ${Long.MAX_VALUE} 1 0 0 0 0 0 0",
+            ),
+        )
+    }
+
+    @Test
+    fun meminfoUsesMemAvailableAndBoundsItToTotal() {
+        val memory = ProcParsers.parseSystemMemoryInfo(
+            "MemTotal: 8192 kB\nMemFree: 100 kB\nMemAvailable: 9000 kB",
+        )
+
+        requireNotNull(memory)
+        assertEquals(8192L, memory.totalKb)
+        assertEquals(8192L, memory.availableKb)
+        assertNull(ProcParsers.parseSystemMemoryInfo("MemTotal: 8192 kB"))
+    }
+
+    @Test
     fun processStatUsesLastParenthesisAndStableFieldOffsets() {
         val stat = ProcParsers.parseProcessStat(
             "42 (worker (render) 世界) S 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
@@ -30,6 +64,16 @@ class ProcParsersTest {
         assertNull(
             ProcParsers.parseProcessStat(
                 "4 (x) S 1 2 3 4 5 6 7 8 9 10 nope 12 13 14 15 16 17 18 19",
+            ),
+        )
+        assertNull(
+            ProcParsers.parseProcessStat(
+                "4 (x) S 1 2 3 4 5 6 7 8 9 10 ${Long.MAX_VALUE} 1 13 14 15 16 17 18 19 20",
+            ),
+        )
+        assertNull(
+            ProcParsers.parseProcessStat(
+                "4 (x) S 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 -1 20",
             ),
         )
     }
@@ -92,6 +136,22 @@ class ProcParsersTest {
 
         assertEquals(60L, ProcParsers.parseCheckinTotalPssKb(output, 321))
         assertNull(ProcParsers.parseCheckinTotalPssKb(output, 322))
+    }
+
+    @Test
+    fun checkinBatchParserReturnsOnlyRequestedValidRows() {
+        val output = """
+            time,100,200
+            4,10,one,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,6
+            4,11,two,0,0,0,0,0,0,0,0,0,0,0,0,2,3,4,9
+            2,12,old,0,0,0,0,0,0,0,0,0,0,0,0,3,4,5,12
+            malformed
+        """.trimIndent()
+
+        assertEquals(
+            mapOf(10 to 6L, 11 to 9L),
+            ProcParsers.parseCheckinTotalPssByPid(output, setOf(10, 11, 12, 99)),
+        )
     }
 
     @Test

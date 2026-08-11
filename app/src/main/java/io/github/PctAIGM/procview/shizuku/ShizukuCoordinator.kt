@@ -36,6 +36,7 @@ class ShizukuCoordinator(context: Context) {
     private val _state = MutableStateFlow(ShizukuUiState.Checking)
     val state: StateFlow<ShizukuUiState> = _state.asStateFlow()
 
+    @Volatile
     private var userService: IProcViewUserService? = null
     private var binding = false
     private var bindTimeoutJob: Job? = null
@@ -147,6 +148,9 @@ class ShizukuCoordinator(context: Context) {
             true
         }.getOrDefault(false)
     }
+
+    internal fun connectedUserService(): IProcViewUserService? = userService
+        ?.takeIf { service -> service.asBinder().pingBinder() }
 
     private fun evaluateBinderState(forceProbe: Boolean) {
         if (!Shizuku.pingBinder()) {
@@ -333,7 +337,7 @@ class ShizukuCoordinator(context: Context) {
         const val SHIZUKU_DOWNLOAD_URL = "https://shizuku.rikka.app/download/"
         const val USER_SERVICE_TAG = "procview-monitor"
         const val USER_SERVICE_PROCESS_SUFFIX = "monitor"
-        const val USER_SERVICE_VERSION = 1
+        const val USER_SERVICE_VERSION = 2
         const val MIN_SHIZUKU_API_VERSION = 13
         const val PERMISSION_REQUEST_CODE = 10_031
         const val BIND_TIMEOUT_MS = 10_000L

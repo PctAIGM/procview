@@ -4,6 +4,7 @@
 |---|---|---|
 | P0 build, unit test, lint | [`p0-build-baseline.md`](evidence/p0-build-baseline.md) | Passed |
 | M0 Xiaomi capability probe | [`m0-probe-readiness.md`](evidence/m0-probe-readiness.md) | In progress |
+| M1 typed sampling core | [`m1-sampling-core.md`](evidence/m1-sampling-core.md) | Local checks passed; device accuracy pending |
 | CPU/RSS/PSS correctness | Reference-window comparison report | Pending |
 | Foreground 1 s timing | Sampling interval distribution | Pending |
 | Locked 5 s timing | Sampling interval distribution | Pending |

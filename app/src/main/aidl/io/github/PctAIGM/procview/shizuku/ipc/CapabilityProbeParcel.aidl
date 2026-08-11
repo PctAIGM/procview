@@ -1,7 +1,7 @@
 package io.github.PctAIGM.procview.shizuku.ipc;
 
 parcelable CapabilityProbeParcel {
-    int protocolVersion = 1;
+    int protocolVersion = 2;
     int servicePid = -1;
     int serviceUid = -1;
     long probeStartedWallTimeMs = 0L;

@@ -3,9 +3,8 @@ package io.github.PctAIGM.procview.shizuku.user
 import android.system.Os
 import android.system.OsConstants
 import io.github.PctAIGM.procview.sampler.procfs.ProcParsers
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
+import io.github.PctAIGM.procview.sampler.procfs.ProcFileReader
 
 internal data class ProcScanResult(
     val pidCount: Int,
@@ -50,24 +49,24 @@ internal object ProcCapabilityScanner {
 
         selectedPids.forEach { pid ->
             val directory = File(procRoot, pid.toString())
-            val stat = readBoundedText(File(directory, "stat"), MAX_STAT_BYTES)
+            val stat = ProcFileReader.readText(File(directory, "stat"), MAX_STAT_BYTES)
                 ?.let(ProcParsers::parseProcessStat)
             if (stat != null) statReadable++
 
-            val status = readBoundedText(File(directory, "status"), MAX_STATUS_BYTES)
+            val status = ProcFileReader.readText(File(directory, "status"), MAX_STATUS_BYTES)
                 ?.let(ProcParsers::parseProcessStatus)
             if (status != null) {
                 statusReadable++
                 status.uid?.let(uids::add)
             }
 
-            val rssKb = status?.vmRssKb ?: readBoundedText(File(directory, "statm"), MAX_STATM_BYTES)
+            val rssKb = status?.vmRssKb ?: ProcFileReader.readText(File(directory, "statm"), MAX_STATM_BYTES)
                 ?.let(ProcParsers::parseStatmResidentPages)
                 ?.times(pageSizeKb)
             if (rssKb != null) rssReadable++
             if (stat != null && rssKb != null) cpuAndRssReadable++
 
-            if (readBoundedText(File(directory, "cmdline"), MAX_CMDLINE_BYTES) != null) {
+            if (ProcFileReader.readText(File(directory, "cmdline"), MAX_CMDLINE_BYTES) != null) {
                 cmdlineReadable++
             }
         }
@@ -95,11 +94,11 @@ internal object ProcCapabilityScanner {
         val names = ArrayList<String>(minOf(zones.size, MAX_THERMAL_SENSOR_COUNT))
 
         zones.forEach { zone ->
-            val type = readBoundedText(File(zone, "type"), MAX_THERMAL_TYPE_BYTES)
+            val type = ProcFileReader.readText(File(zone, "type"), MAX_THERMAL_TYPE_BYTES)
                 ?.trim()
                 ?.take(MAX_THERMAL_NAME_CHARS)
                 .orEmpty()
-            val temperature = readBoundedText(File(zone, "temp"), MAX_THERMAL_TEMP_BYTES)
+            val temperature = ProcFileReader.readText(File(zone, "temp"), MAX_THERMAL_TEMP_BYTES)
                 ?.trim()
                 ?.toLongOrNull()
             if (temperature != null) readable++
@@ -108,19 +107,6 @@ internal object ProcCapabilityScanner {
 
         return ThermalScanResult(zones.size, readable, names.distinct().toTypedArray())
     }
-
-    fun readBoundedText(file: File, maxBytes: Int): String? = runCatching {
-        FileInputStream(file).use { input ->
-            val output = ByteArrayOutputStream(maxBytes)
-            val buffer = ByteArray(minOf(4096, maxBytes))
-            while (output.size() < maxBytes) {
-                val count = input.read(buffer, 0, minOf(buffer.size, maxBytes - output.size()))
-                if (count < 0) break
-                output.write(buffer, 0, count)
-            }
-            output.toString(Charsets.UTF_8.name())
-        }
-    }.getOrNull()
 
     private const val MAX_PROCESS_COUNT = 4096
     private const val MAX_UID_SAMPLE_COUNT = 2048

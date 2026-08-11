@@ -23,6 +23,7 @@ internal class ReadOnlyCommandRunner {
     fun listAllPids(): CommandResult = execute(
         command = listOf("/system/bin/ps", "-A", "-o", "PID"),
         timeoutMs = FAST_COMMAND_TIMEOUT_MS,
+        maxOutputBytes = MAX_COMMAND_OUTPUT_BYTES,
     )
 
     fun readPssCheckin(pid: Int, knownPids: Set<Int>): CommandResult {
@@ -36,19 +37,37 @@ internal class ReadOnlyCommandRunner {
                 pid.toString(),
             ),
             timeoutMs = PSS_COMMAND_TIMEOUT_MS,
+            maxOutputBytes = MAX_COMMAND_OUTPUT_BYTES,
         )
     }
+
+    fun readPssCheckinBatch(): CommandResult = execute(
+        command = listOf(
+            "/system/bin/dumpsys",
+            "meminfo",
+            "--local",
+            "--checkin",
+        ),
+        timeoutMs = PSS_BATCH_TIMEOUT_MS,
+        maxOutputBytes = MAX_PSS_BATCH_OUTPUT_BYTES,
+    )
 
     fun close() {
         streamExecutor.shutdownNow()
     }
 
-    private fun execute(command: List<String>, timeoutMs: Long): CommandResult {
+    private fun execute(
+        command: List<String>,
+        timeoutMs: Long,
+        maxOutputBytes: Int,
+    ): CommandResult {
         val started = System.nanoTime()
         val process = ProcessBuilder(command)
             .redirectErrorStream(true)
             .start()
-        val outputFuture = streamExecutor.submit(Callable { readBounded(process.inputStream) })
+        val outputFuture = streamExecutor.submit(Callable {
+            readBounded(process.inputStream, maxOutputBytes)
+        })
         val finished = process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
         if (!finished) process.destroyForcibly()
 
@@ -68,14 +87,14 @@ internal class ReadOnlyCommandRunner {
         )
     }
 
-    private fun readBounded(input: InputStream): BoundedOutput = input.use { stream ->
+    private fun readBounded(input: InputStream, maxOutputBytes: Int): BoundedOutput = input.use { stream ->
         val buffer = ByteArray(STREAM_BUFFER_BYTES)
-        val collected = ByteArrayOutputStream(MAX_COMMAND_OUTPUT_BYTES)
+        val collected = ByteArrayOutputStream(minOf(maxOutputBytes, MAX_COMMAND_OUTPUT_BYTES))
         var truncated = false
         while (true) {
             val count = stream.read(buffer)
             if (count < 0) break
-            val remaining = MAX_COMMAND_OUTPUT_BYTES - collected.size()
+            val remaining = maxOutputBytes - collected.size()
             if (remaining > 0) {
                 val accepted = minOf(count, remaining)
                 collected.write(buffer, 0, accepted)
@@ -90,8 +109,10 @@ internal class ReadOnlyCommandRunner {
     private companion object {
         const val FAST_COMMAND_TIMEOUT_MS = 2_000L
         const val PSS_COMMAND_TIMEOUT_MS = 5_000L
+        const val PSS_BATCH_TIMEOUT_MS = 12_000L
         const val STREAM_DRAIN_TIMEOUT_MS = 750L
         const val MAX_COMMAND_OUTPUT_BYTES = 256 * 1024
+        const val MAX_PSS_BATCH_OUTPUT_BYTES = 4 * 1024 * 1024
         const val STREAM_BUFFER_BYTES = 8 * 1024
         const val NANOS_PER_MILLISECOND = 1_000_000L
     }

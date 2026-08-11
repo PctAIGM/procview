@@ -9,8 +9,9 @@ Status: code-ready; target-device evidence pending.
 - The non-daemon UserService has a stable tag, process suffix, and protocol
   version. Its AIDL surface returns a structured parcelable and accepts no
   command text.
-- Privileged commands are limited to fixed argument arrays for `ps -A -o PID`
-  and `dumpsys meminfo --local --checkin <known-pid>`.
+- Privileged commands are limited to fixed argument arrays for `ps -A -o PID`,
+  single-PID `dumpsys meminfo --local --checkin <known-pid>`, and bounded batch
+  `dumpsys meminfo --local --checkin`.
 - Command execution enforces positive catalogued PIDs, timeouts, bounded output,
   and no shell interpreter.
 - The probe measures procfs enumeration/readability, PID 1, PSS, thermal zones,
@@ -27,7 +28,7 @@ Status: code-ready; target-device evidence pending.
 - Debug APK size: 65,705,906 bytes.
 - Debug APK SHA-256:
   `52C2F5CFFEA707D6E1DD5151511F6761B8BE550C73195D5D46B67BDC6B176790`.
-- Security scan found one `ProcessBuilder` site containing only the two fixed
+- Security scan found one `ProcessBuilder` site containing only the three fixed
   read-only command definitions above.
 
 ## Device gate still required

@@ -41,7 +41,7 @@ class CapabilityReportJsonTest {
         serviceUid = 2000,
         servicePid = 321,
         backendMode = BackendMode.ADB,
-        protocolVersion = 1,
+            protocolVersion = 2,
         bootId = "boot-test",
         procStatReadable = true,
         procMeminfoReadable = true,

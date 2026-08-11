@@ -81,9 +81,14 @@ private enum class MainDestination(
 fun ProcViewApp(modifier: Modifier = Modifier) {
     val application = LocalContext.current.applicationContext as ProcViewApplication
     val probeViewModel: ShizukuProbeViewModel = viewModel(
-        factory = ShizukuProbeViewModel.Factory(application.shizukuCoordinator),
+        factory = ShizukuProbeViewModel.Factory(
+            coordinator = application.shizukuCoordinator,
+            backend = application.monitorBackend,
+            packageResolver = application.packageResolver,
+        ),
     )
     val shizukuState by probeViewModel.state.collectAsStateWithLifecycle()
+    val samplingPreview by probeViewModel.samplingPreview.collectAsStateWithLifecycle()
     var destination by rememberSaveable { mutableStateOf(MainDestination.Live) }
     val title = stringResource(destination.label)
 
@@ -133,7 +138,9 @@ fun ProcViewApp(modifier: Modifier = Modifier) {
             MainDestination.Live -> LiveBaseline(
                 contentPadding = contentPadding,
                 shizukuState = shizukuState,
+                samplingPreview = samplingPreview,
                 onPrimaryAction = probeViewModel::performPrimaryAction,
+                onRunSamplingPreview = probeViewModel::runSamplingPreview,
             )
             MainDestination.History -> EmptyDestination(
                 contentPadding = contentPadding,
@@ -153,7 +160,9 @@ fun ProcViewApp(modifier: Modifier = Modifier) {
 private fun LiveBaseline(
     contentPadding: PaddingValues,
     shizukuState: ShizukuUiState,
+    samplingPreview: SamplingPreviewState,
     onPrimaryAction: () -> Unit,
+    onRunSamplingPreview: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -171,7 +180,13 @@ private fun LiveBaseline(
                 onShare = { shareCapabilityReport(context, report) },
             )
         }
-        MetricGroup()
+        SamplingPreviewCard(
+            state = samplingPreview,
+            enabled = shizukuState.phase == ShizukuPhase.AVAILABLE ||
+                shizukuState.phase == ShizukuPhase.PARTIAL,
+            onRun = onRunSamplingPreview,
+        )
+        MetricGroup((samplingPreview as? SamplingPreviewState.Ready)?.result)
     }
 }
 
@@ -427,8 +442,134 @@ private fun CapabilityReportCard(
 }
 
 @Composable
-private fun MetricGroup() {
-    val summary = stringResource(R.string.metric_summary_accessibility)
+private fun SamplingPreviewCard(
+    state: SamplingPreviewState,
+    enabled: Boolean,
+    onRun: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                text = stringResource(R.string.sampling_preview_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
+            when (state) {
+                SamplingPreviewState.Idle -> Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.sampling_preview_idle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                SamplingPreviewState.Running -> Row(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    Text(
+                        text = stringResource(R.string.sampling_preview_running),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                is SamplingPreviewState.Failed -> Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.sampling_preview_failed, state.errorType),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                is SamplingPreviewState.Ready -> {
+                    val result = state.result
+                    MetricRow(
+                        label = stringResource(R.string.sampling_preview_frame),
+                        value = stringResource(
+                            R.string.value_sampling_frame,
+                            result.sequence,
+                            result.intervalMs,
+                        ),
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
+                    MetricRow(
+                        label = stringResource(R.string.sampling_preview_values),
+                        value = stringResource(
+                            R.string.value_sampling_values,
+                            result.processCount,
+                            result.cpuValueCount,
+                            result.rssValueCount,
+                            result.pssValueCount,
+                        ),
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
+                    MetricRow(
+                        label = stringResource(R.string.sampling_preview_catalog),
+                        value = stringResource(
+                            R.string.value_sampling_catalog,
+                            result.catalogCount,
+                            result.applicationCount,
+                            result.catalogRevision,
+                        ),
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
+                    MetricRow(
+                        label = stringResource(R.string.sampling_preview_transport),
+                        value = stringResource(
+                            R.string.value_sampling_transport,
+                            result.source.name,
+                            result.collectionDurationMs,
+                            result.frameFlags,
+                        ),
+                    )
+                }
+            }
+            OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .height(48.dp),
+                enabled = enabled && state !is SamplingPreviewState.Running,
+                onClick = onRun,
+            ) {
+                Text(
+                    stringResource(
+                        if (state is SamplingPreviewState.Ready) {
+                            R.string.action_run_sampling_preview_again
+                        } else {
+                            R.string.action_run_sampling_preview
+                        },
+                    ),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MetricGroup(result: SamplingPreviewResult?) {
+    val cpuValue = result?.systemCpuPercentBasisPoints?.let { basisPoints ->
+        stringResource(R.string.value_percent, basisPoints / 100.0)
+    } ?: "—"
+    val memoryValue = result?.let { preview ->
+        val total = preview.memoryTotalKb
+        val available = preview.memoryAvailableKb
+        if (total != null && total > 0 && available != null) {
+            stringResource(
+                R.string.value_percent,
+                ((total - available).coerceAtLeast(0L).toDouble() / total.toDouble()) * 100.0,
+            )
+        } else {
+            null
+        }
+    } ?: "—"
+    val summary = if (result == null) {
+        stringResource(R.string.metric_summary_accessibility)
+    } else {
+        stringResource(R.string.metric_summary_value_accessibility, cpuValue, memoryValue)
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -438,9 +579,9 @@ private fun MetricGroup() {
         ),
     ) {
         Column {
-            MetricRow(label = stringResource(R.string.metric_cpu), value = "—")
+            MetricRow(label = stringResource(R.string.metric_cpu), value = cpuValue)
             HorizontalDivider(modifier = Modifier.padding(start = 16.dp))
-            MetricRow(label = stringResource(R.string.metric_memory), value = "—")
+            MetricRow(label = stringResource(R.string.metric_memory), value = memoryValue)
         }
     }
 }
