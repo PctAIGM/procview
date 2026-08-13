@@ -1,6 +1,7 @@
 package io.github.PctAIGM.procview.sampler
 
 import io.github.PctAIGM.procview.model.MetricFrame
+import io.github.PctAIGM.procview.model.MetricDataSource
 import io.github.PctAIGM.procview.model.MetricFrameFlags
 import io.github.PctAIGM.procview.model.ProcessKey
 import io.github.PctAIGM.procview.model.ProcessMetric
@@ -11,13 +12,16 @@ class MetricFrameAssembler {
     private var previousSystemTotalTicks: Long? = null
     private var previousSystemIdleTicks: Long? = null
     private var previousProcessTicks: Map<ProcessKey, Long> = emptyMap()
+    private var previousSource: MetricDataSource? = null
     private val pssCache = mutableMapOf<ProcessKey, PssSample>()
 
     fun recordPss(
         valuesKb: Map<ProcessKey, Long>,
         sampledAtElapsedRealtimeNanos: Long,
+        source: MetricDataSource,
     ) {
         require(sampledAtElapsedRealtimeNanos >= 0) { "PSS sample time must not be negative" }
+        if (previousSource != null && previousSource != source) return
         valuesKb.forEach { (key, value) ->
             if (value >= 0) pssCache[key] = PssSample(value, sampledAtElapsedRealtimeNanos)
         }
@@ -25,6 +29,16 @@ class MetricFrameAssembler {
 
     fun assemble(raw: RawMetricFrame): MetricFrame {
         var flags = raw.frameFlags
+        if (previousSource != null && previousSource != raw.source) {
+            previousSystemTotalTicks = null
+            previousSystemIdleTicks = null
+            previousProcessTicks = emptyMap()
+            // Fallback start keys are estimated in centiseconds rather than procfs clock
+            // ticks. Even an accidental numeric collision must not carry a PSS value across
+            // two incomparable identity domains.
+            pssCache.clear()
+            flags = flags or MetricFrameFlags.DATA_SOURCE_CHANGED
+        }
         val total = raw.systemTotalCpuTicks
         val idle = raw.systemIdleCpuTicks
         val previousTotal = previousSystemTotalTicks
@@ -78,6 +92,7 @@ class MetricFrameAssembler {
         previousProcessTicks = currentProcessTicks
         previousSystemTotalTicks = total
         previousSystemIdleTicks = idle
+        previousSource = raw.source
 
         return MetricFrame(
             sequence = raw.sequence,
@@ -98,6 +113,7 @@ class MetricFrameAssembler {
         previousSystemTotalTicks = null
         previousSystemIdleTicks = null
         previousProcessTicks = emptyMap()
+        previousSource = null
         pssCache.clear()
     }
 

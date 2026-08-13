@@ -17,7 +17,9 @@ private val FixedLightColors = lightColorScheme(
     primaryContainer = Color(0xFFD9E9FF),
     onPrimaryContainer = Color(0xFF002C5E),
     secondary = Color(0xFF5856D6),
-    tertiary = Color(0xFFFF9500),
+    onSecondary = Color.White,
+    tertiary = Color(0xFFB45A00),
+    onTertiary = Color.White,
     background = LightBackground,
     onBackground = LightText,
     surface = LightSurface,
@@ -26,6 +28,7 @@ private val FixedLightColors = lightColorScheme(
     onSurfaceVariant = LightSecondaryText,
     outline = LightSeparator,
     error = Color(0xFFD70015),
+    onError = Color.White,
 )
 
 private val FixedDarkColors = darkColorScheme(
@@ -33,8 +36,10 @@ private val FixedDarkColors = darkColorScheme(
     onPrimary = Color.Black,
     primaryContainer = Color(0xFF003E7C),
     onPrimaryContainer = Color(0xFFD6E9FF),
-    secondary = Color(0xFF5E5CE6),
+    secondary = Color(0xFFA9A7FF),
+    onSecondary = Color.Black,
     tertiary = Color(0xFFFF9F0A),
+    onTertiary = Color.Black,
     background = DarkBackground,
     onBackground = DarkText,
     surface = DarkSurface,
@@ -42,7 +47,8 @@ private val FixedDarkColors = darkColorScheme(
     surfaceVariant = Color(0xFF3A3A3C),
     onSurfaceVariant = DarkSecondaryText,
     outline = DarkSeparator,
-    error = Color(0xFFFF453A),
+    error = Color(0xFFFF6961),
+    onError = Color.Black,
 )
 
 @Composable

@@ -13,4 +13,5 @@ interface IProcViewUserService {
     RawMetricFrameParcel collectMetricFrame() = 3;
     ProcessCatalogChunkParcel getCatalogChunk(long expectedRevision, int offset, int limit) = 4;
     PssResultParcel readPss(in ProcessKeyParcel[] keys) = 5;
+    String getBootId() = 6;
 }

@@ -36,7 +36,8 @@ object ApplicationAggregator {
             when {
                 resolution?.primaryPackage != null -> "app:${resolution.primaryPackage}"
                 resolution?.isSharedUid == true -> "uid:${identity?.uid ?: -1}"
-                resolution?.isNative == true -> "native:${identity?.processName.orEmpty()}"
+                resolution?.isNative == true ->
+                    "native:${identity?.uid ?: -1}:${identity?.processName.orEmpty()}"
                 else -> "process:${metric.key.pid}:${metric.key.startTimeTicks}"
             }
         }
@@ -44,7 +45,6 @@ object ApplicationAggregator {
         return grouped.map { (stableId, processes) ->
             val identities = processes.mapNotNull { catalogByKey[it.key] }
             val processResolutions = processes.mapNotNull { resolutionByKey[it.key] }
-            val representative = processResolutions.firstOrNull()
             val primaryPackage = processResolutions.firstNotNullOfOrNull { it.primaryPackage }
             val candidates = processResolutions.flatMap { it.packageCandidates }.distinct().sorted()
             val cpuValues = processes.mapNotNull(ProcessMetric::cpuPercentBasisPoints)
@@ -54,7 +54,7 @@ object ApplicationAggregator {
                 stableId = stableId,
                 primaryPackage = primaryPackage,
                 packageCandidates = candidates,
-                displayName = representative?.displayName
+                displayName = processResolutions.firstNotNullOfOrNull { it.displayName }
                     ?: primaryPackage
                     ?: identities.firstOrNull()?.processName
                     ?: stableId,

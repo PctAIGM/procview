@@ -40,6 +40,7 @@ data class DiagnosticBundle(
 
 interface PrivilegedMonitorBackend {
     suspend fun probe(): CapabilityReport
+    suspend fun verifyBootId(): String = probe().bootId
     fun frames(config: SamplingConfig): Flow<RawMetricFrame>
     suspend fun readCatalog(revision: Long): CatalogSnapshot
     suspend fun readPss(keys: List<ProcessKey>): PssBatch

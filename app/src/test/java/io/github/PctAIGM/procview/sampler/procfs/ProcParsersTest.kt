@@ -76,6 +76,11 @@ class ProcParsersTest {
                 "4 (x) S 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 -1 20",
             ),
         )
+        assertNull(
+            ProcParsers.parseProcessStat(
+                "4 (x) S -1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
+            ),
+        )
     }
 
     @Test
@@ -103,6 +108,10 @@ class ProcParsersTest {
         requireNotNull(status)
         assertEquals(2000, status.uid)
         assertNull(status.vmRssKb)
+        val invalidIdentity = ProcParsers.parseProcessStatus("PPid: -1\nUid: -2 -2 -2 -2")
+        requireNotNull(invalidIdentity)
+        assertNull(invalidIdentity.parentPid)
+        assertNull(invalidIdentity.uid)
     }
 
     @Test
@@ -118,6 +127,7 @@ class ProcParsersTest {
             PID
               1
             42
+            42
             worker
             -3
 
@@ -125,6 +135,7 @@ class ProcParsersTest {
         """.trimIndent()
 
         assertEquals(3, ProcParsers.parsePsPidCount(output))
+        assertEquals(setOf(1, 42, 2000), ProcParsers.parsePsPids(output))
     }
 
     @Test
@@ -145,12 +156,13 @@ class ProcParsersTest {
             4,10,one,0,0,0,0,0,0,0,0,0,0,0,0,1,2,3,6
             4,11,two,0,0,0,0,0,0,0,0,0,0,0,0,2,3,4,9
             2,12,old,0,0,0,0,0,0,0,0,0,0,0,0,3,4,5,12
+            5,13,future,0,0,0,0,0,0,0,0,0,0,0,0,4,5,6,15
             malformed
         """.trimIndent()
 
         assertEquals(
             mapOf(10 to 6L, 11 to 9L),
-            ProcParsers.parseCheckinTotalPssByPid(output, setOf(10, 11, 12, 99)),
+            ProcParsers.parseCheckinTotalPssByPid(output, setOf(10, 11, 12, 13, 99)),
         )
     }
 
@@ -159,6 +171,12 @@ class ProcParsersTest {
         assertNull(
             ProcParsers.parseCheckinTotalPssKb(
                 "2,7,proc,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,3",
+                7,
+            ),
+        )
+        assertNull(
+            ProcParsers.parseCheckinTotalPssKb(
+                "5,7,proc,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,3",
                 7,
             ),
         )

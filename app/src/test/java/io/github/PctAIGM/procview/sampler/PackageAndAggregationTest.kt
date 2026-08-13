@@ -6,6 +6,7 @@ import io.github.PctAIGM.procview.model.ProcessKey
 import io.github.PctAIGM.procview.model.ProcessMetric
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.fail
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -30,6 +31,84 @@ class PackageAndAggregationTest {
             "com.only",
             PackageCandidateSelector.selectPrimary("unusual-name", listOf("com.only")),
         )
+    }
+
+    @Test
+    fun nullableApplicationFlagsNeverTreatMissingMetadataAsAFlagMatch() {
+        assertFalse(hasApplicationFlag(null, 1))
+        assertFalse(hasApplicationFlag(0, 1))
+        assertTrue(hasApplicationFlag(3, 1))
+    }
+
+    @Test
+    fun packageMetadataCacheReusesValuesUntilItsTtlExpires() {
+        var nowMs = 0L
+        var loads = 0
+        fun nextValue(): String {
+            loads += 1
+            return "value-$loads"
+        }
+        val cache = ExpiringBoundedCache<String, String>(
+            maxEntries = 2,
+            ttlMs = 10L,
+            monotonicTimeMs = { nowMs },
+        )
+
+        assertEquals("value-1", cache.getOrLoad("package", ::nextValue))
+        nowMs = 9L
+        assertEquals("value-1", cache.getOrLoad("package", ::nextValue))
+        nowMs = 10L
+        assertEquals("value-2", cache.getOrLoad("package", ::nextValue))
+        assertEquals(2, loads)
+    }
+
+    @Test
+    fun packageMetadataCacheEvictsTheLeastRecentlyUsedEntry() {
+        var loads = 0
+        fun nextValue(): String {
+            loads += 1
+            return "value-$loads"
+        }
+        val cache = ExpiringBoundedCache<String, String>(
+            maxEntries = 2,
+            ttlMs = 100L,
+            monotonicTimeMs = { 0L },
+        )
+
+        cache.getOrLoad("first", ::nextValue)
+        cache.getOrLoad("second", ::nextValue)
+        cache.getOrLoad("first", ::nextValue)
+        cache.getOrLoad("third", ::nextValue)
+        cache.getOrLoad("second", ::nextValue)
+
+        assertEquals(4, loads)
+    }
+
+    @Test
+    fun packageMetadataCacheDoesNotRetainLoaderFailures() {
+        var loads = 0
+        val cache = ExpiringBoundedCache<String, String>(
+            maxEntries = 2,
+            ttlMs = 100L,
+            monotonicTimeMs = { 0L },
+        )
+
+        try {
+            cache.getOrLoad("package") {
+                loads += 1
+                error("transient")
+            }
+            fail("loader failure must escape")
+        } catch (_: IllegalStateException) {
+            // Expected: a failed load cannot become a cached value.
+        }
+        val recovered = cache.getOrLoad("package") {
+            loads += 1
+            "recovered"
+        }
+
+        assertEquals("recovered", recovered)
+        assertEquals(2, loads)
     }
 
     @Test

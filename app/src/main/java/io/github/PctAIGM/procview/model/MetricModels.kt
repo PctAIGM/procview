@@ -80,4 +80,6 @@ object MetricFrameFlags {
     const val CPU_COUNTER_RESET = 1 shl 4
     const val PROCESS_COUNTER_RESET = 1 shl 5
     const val SAMPLER_SKIPPED_TICK = 1 shl 6
+    const val FALLBACK_PARSE_PARTIAL = 1 shl 7
+    const val DATA_SOURCE_CHANGED = 1 shl 8
 }

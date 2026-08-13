@@ -10,4 +10,5 @@ internal object ProbeErrorFlags {
     const val PSS_PARSE = 1 shl 6
     const val THERMAL = 1 shl 7
     const val COMMAND_OUTPUT_TRUNCATED = 1 shl 8
+    const val FALLBACK_PARSE = 1 shl 9
 }

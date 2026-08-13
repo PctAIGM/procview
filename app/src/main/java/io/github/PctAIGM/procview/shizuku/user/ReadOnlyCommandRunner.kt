@@ -26,6 +26,23 @@ internal class ReadOnlyCommandRunner {
         maxOutputBytes = MAX_COMMAND_OUTPUT_BYTES,
     )
 
+    /**
+     * Fixed-field Toybox fallback. There is intentionally no caller-provided command or option.
+     * Numeric UID, bounded output, and CMDLINE-last make the result deterministic to parse.
+     */
+    fun readProcessSnapshot(): CommandResult = execute(
+        command = listOf(
+            "/system/bin/ps",
+            "-A",
+            "-n",
+            "-w",
+            "-o",
+            "PID,PPID,UID,RSS,S,ELAPSED,TIME+,CMDLINE",
+        ),
+        timeoutMs = PROCESS_SNAPSHOT_TIMEOUT_MS,
+        maxOutputBytes = MAX_PROCESS_SNAPSHOT_OUTPUT_BYTES,
+    )
+
     fun readPssCheckin(pid: Int, knownPids: Set<Int>): CommandResult {
         require(pid > 0 && pid in knownPids) { "PID must belong to the current catalog" }
         return execute(
@@ -65,15 +82,21 @@ internal class ReadOnlyCommandRunner {
         val process = ProcessBuilder(command)
             .redirectErrorStream(true)
             .start()
+        runCatching { process.outputStream.close() }
         val outputFuture = streamExecutor.submit(Callable {
             readBounded(process.inputStream, maxOutputBytes)
         })
         val finished = process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
-        if (!finished) process.destroyForcibly()
+        if (!finished) {
+            process.destroyForcibly()
+            process.waitFor(PROCESS_DESTROY_GRACE_MS, TimeUnit.MILLISECONDS)
+            runCatching { process.inputStream.close() }
+        }
 
         val boundedOutput = try {
             outputFuture.get(STREAM_DRAIN_TIMEOUT_MS, TimeUnit.MILLISECONDS)
         } catch (_: TimeoutException) {
+            runCatching { process.inputStream.close() }
             outputFuture.cancel(true)
             BoundedOutput("", truncated = true)
         }
@@ -108,10 +131,13 @@ internal class ReadOnlyCommandRunner {
 
     private companion object {
         const val FAST_COMMAND_TIMEOUT_MS = 2_000L
+        const val PROCESS_SNAPSHOT_TIMEOUT_MS = 4_000L
         const val PSS_COMMAND_TIMEOUT_MS = 5_000L
         const val PSS_BATCH_TIMEOUT_MS = 12_000L
         const val STREAM_DRAIN_TIMEOUT_MS = 750L
+        const val PROCESS_DESTROY_GRACE_MS = 250L
         const val MAX_COMMAND_OUTPUT_BYTES = 256 * 1024
+        const val MAX_PROCESS_SNAPSHOT_OUTPUT_BYTES = 2 * 1024 * 1024
         const val MAX_PSS_BATCH_OUTPUT_BYTES = 4 * 1024 * 1024
         const val STREAM_BUFFER_BYTES = 8 * 1024
         const val NANOS_PER_MILLISECOND = 1_000_000L

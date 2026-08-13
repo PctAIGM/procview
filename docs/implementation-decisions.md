@@ -19,9 +19,17 @@ product specification. The original specification remains unchanged.
 
 - Process identity remains `(pid, startTimeTicks)` within a session.
 - Persistent app pins use package name. Child-process pins use package name and
-  process name. Native-process pins use a stable command-name/UID matcher.
+  process name. Ambiguous shared-UID app groups use a UID target, and native
+  processes use a stable command-name/UID matcher.
 - Room adds a pause reason, package-candidate relation, stable pin targets, and
   per-session process summaries to support the specified behavior.
+- Session duration is based only on monotonic elapsed offsets. Backend frame
+  sequence numbers are rebased to a session-owned monotonic sequence so a
+  same-boot UserService restart cannot collide with earlier Room rows.
+- Session metadata must commit before sampling is published. A queue-full pause
+  drains every command accepted before the failure signal; a failed database
+  transaction retains that accepted frame/event snapshot for a recovery retry
+  and drops later dependent commands until the recovery barrier.
 - Session size is presented as an estimate because all sessions share one Room
   database and WAL.
 - Export includes every retained process sample, including `DETAIL`, and exposes

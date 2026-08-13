@@ -1,6 +1,7 @@
 package io.github.PctAIGM.procview.sampler
 
 import io.github.PctAIGM.procview.model.MetricFrameFlags
+import io.github.PctAIGM.procview.model.MetricDataSource
 import io.github.PctAIGM.procview.model.ProcessKey
 import io.github.PctAIGM.procview.model.RawMetricFrame
 import io.github.PctAIGM.procview.model.RawProcessMetric
@@ -60,7 +61,11 @@ class MetricFrameAssemblerTest {
     @Test
     fun pssCacheCarriesTimestampAndDropsExitedKeys() {
         val assembler = MetricFrameAssembler()
-        assembler.recordPss(mapOf(key to 1234L), sampledAtElapsedRealtimeNanos = 99L)
+        assembler.recordPss(
+            valuesKb = mapOf(key to 1234L),
+            sampledAtElapsedRealtimeNanos = 99L,
+            source = MetricDataSource.PROCFS,
+        )
         val withPss = assembler.assemble(raw(sequence = 1, total = 100, idle = 50, processTicks = 10))
         val otherKey = ProcessKey(7, 77L)
         assembler.assemble(
@@ -73,12 +78,57 @@ class MetricFrameAssemblerTest {
         assertNull(returned.metrics.single().pssKb)
     }
 
+    @Test
+    fun changingDataSourceStartsFreshCpuBaselines() {
+        val assembler = MetricFrameAssembler()
+        assembler.assemble(raw(sequence = 1, total = 100, idle = 50, processTicks = 10))
+        assembler.assemble(raw(sequence = 2, total = 200, idle = 100, processTicks = 20))
+        assembler.recordPss(
+            valuesKb = mapOf(key to 1_024L),
+            sampledAtElapsedRealtimeNanos = 2_000_000_000L,
+            source = MetricDataSource.PROCFS,
+        )
+
+        val firstFallback = assembler.assemble(
+            raw(
+                sequence = 3,
+                total = 10,
+                idle = 5,
+                processTicks = 1,
+                source = MetricDataSource.PS_FALLBACK,
+            ),
+        )
+        assembler.recordPss(
+            valuesKb = mapOf(key to 2_048L),
+            sampledAtElapsedRealtimeNanos = 3_000_000_000L,
+            source = MetricDataSource.PROCFS,
+        )
+        val secondFallback = assembler.assemble(
+            raw(
+                sequence = 4,
+                total = 110,
+                idle = 55,
+                processTicks = 11,
+                source = MetricDataSource.PS_FALLBACK,
+            ),
+        )
+
+        assertNull(firstFallback.systemCpuPercentBasisPoints)
+        assertNull(firstFallback.metrics.single().cpuPercentBasisPoints)
+        assertNull(firstFallback.metrics.single().pssKb)
+        assertTrue(firstFallback.frameFlags and MetricFrameFlags.DATA_SOURCE_CHANGED != 0)
+        assertEquals(5_000, secondFallback.systemCpuPercentBasisPoints)
+        assertEquals(1_000, secondFallback.metrics.single().cpuPercentBasisPoints)
+        assertNull(secondFallback.metrics.single().pssKb)
+    }
+
     private fun raw(
         sequence: Long,
         total: Long?,
         idle: Long?,
         processTicks: Long,
         processKey: ProcessKey = key,
+        source: MetricDataSource = MetricDataSource.PROCFS,
     ) = RawMetricFrame(
         sequence = sequence,
         elapsedRealtimeNanos = sequence * 1_000_000_000L,
@@ -89,6 +139,7 @@ class MetricFrameAssemblerTest {
         memoryAvailableKb = 4000,
         collectionDurationMs = 10,
         catalogRevision = 1,
+        source = source,
         frameFlags = MetricFrameFlags.NONE,
         metrics = listOf(
             RawProcessMetric(

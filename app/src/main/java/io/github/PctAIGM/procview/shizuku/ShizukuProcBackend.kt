@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.sync.Mutex
 
 class ShizukuProcBackend(
@@ -38,10 +38,18 @@ class ShizukuProcBackend(
 
     override suspend fun probe(): CapabilityReport {
         withContext(Dispatchers.Main.immediate) { coordinator.refresh() }
-        val state = withTimeout(PROBE_TIMEOUT_MS) {
+        val state = withTimeoutOrNull(PROBE_TIMEOUT_MS) {
             coordinator.state.first { value -> value.phase in TERMINAL_PROBE_PHASES }
-        }
+        } ?: throw BackendUnavailableException("Shizuku capability probe timed out")
         return state.report ?: throw BackendUnavailableException("Shizuku phase: ${state.phase}")
+    }
+
+    override suspend fun verifyBootId(): String = withContext(Dispatchers.IO) {
+        val bootId = requireService().bootId.trim()
+        if (bootId.isEmpty() || bootId.length > MAX_BOOT_ID_CHARS) {
+            throw BackendProtocolException("invalid boot ID")
+        }
+        bootId
     }
 
     override fun frames(config: SamplingConfig): Flow<RawMetricFrame> = flow {
@@ -108,6 +116,9 @@ class ShizukuProcBackend(
                 if (entries.size != chunk.totalEntries) {
                     throw BackendProtocolException("incomplete catalog transfer")
                 }
+                if (entries.map(ProcessCatalogEntry::key).toSet().size != entries.size) {
+                    throw BackendProtocolException("catalog contains duplicate process keys")
+                }
                 return@withContext CatalogSnapshot(expectedRevision, entries)
             }
             offset = chunk.nextOffset
@@ -134,16 +145,21 @@ class ShizukuProcBackend(
         ) {
             throw BackendProtocolException("invalid PSS result bounds")
         }
-        val values = result.values.orEmpty().mapNotNull { value ->
+        val pairs = result.values.orEmpty().map { value ->
             val key = runCatching { ProcessKey(value.pid, value.startTimeTicks) }.getOrNull()
-                ?: return@mapNotNull null
-            if (key !in expected || value.pssKb < 0) return@mapNotNull null
+                ?: throw BackendProtocolException("PSS result contains an invalid process key")
+            if (key !in expected || value.pssKb < 0) {
+                throw BackendProtocolException("PSS result contains an unexpected value")
+            }
             key to value.pssKb
-        }.toMap()
+        }
+        if (pairs.map { it.first }.toSet().size != pairs.size) {
+            throw BackendProtocolException("PSS result contains duplicate process keys")
+        }
         PssBatch(
             sampledAtElapsedRealtimeNanos = result.sampledAtElapsedRealtimeNanos,
             durationMs = result.durationMs,
-            valuesKb = values,
+            valuesKb = pairs.toMap(),
             errorFlags = result.errorFlags,
         )
     }
@@ -161,7 +177,13 @@ class ShizukuProcBackend(
         ?: throw BackendUnavailableException("Shizuku UserService is not connected")
 
     private fun RawMetricFrameParcel.toDomain(): RawMetricFrame {
-        if (sequence < 0 || elapsedRealtimeNanos < 0 || wallTimeMillis < 0 || catalogRevision < 0) {
+        if (
+            sequence < 0 ||
+            elapsedRealtimeNanos < 0 ||
+            wallTimeMillis < 0 ||
+            collectionDurationMs < 0 ||
+            catalogRevision < 0
+        ) {
             throw BackendProtocolException("metric frame contains invalid counters")
         }
         if (metrics.orEmpty().size > MAX_CATALOG_ENTRIES) {
@@ -193,7 +215,7 @@ class ShizukuProcBackend(
             systemIdleCpuTicks = systemIdleCpuTicks.takeIf { it >= 0 },
             memoryTotalKb = memoryTotalKb.takeIf { it >= 0 },
             memoryAvailableKb = memoryAvailableKb.takeIf { it >= 0 },
-            collectionDurationMs = collectionDurationMs.coerceAtLeast(0),
+            collectionDurationMs = collectionDurationMs,
             catalogRevision = catalogRevision,
             source = when (sourceCode) {
                 IpcCodes.SOURCE_PROCFS -> MetricDataSource.PROCFS
@@ -239,7 +261,8 @@ class ShizukuProcBackend(
             ShizukuPhase.PARTIAL,
             ShizukuPhase.ERROR,
         )
-        const val PROBE_TIMEOUT_MS = 15_000L
+        const val PROBE_TIMEOUT_MS = 30_000L
+        const val MAX_BOOT_ID_CHARS = 128
         const val CATALOG_CHUNK_SIZE = 32
         const val MAX_CATALOG_ENTRIES = 4096
         const val MAX_CATALOG_RESTARTS = 3

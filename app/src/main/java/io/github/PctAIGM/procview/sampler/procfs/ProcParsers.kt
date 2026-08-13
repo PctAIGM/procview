@@ -78,7 +78,7 @@ internal object ProcParsers {
             pid = pid,
             command = command,
             state = fields[0].singleOrNull() ?: return null,
-            parentPid = fields[1].toIntOrNull() ?: return null,
+            parentPid = fields[1].toIntOrNull()?.takeIf { it >= 0 } ?: return null,
             userTicks = userTicks,
             systemTicks = systemTicks,
             startTimeTicks = startTimeTicks,
@@ -103,11 +103,12 @@ internal object ProcParsers {
                     recognized = true
                 }
                 "PPid" -> {
-                    parentPid = value.substringBefore(' ').toIntOrNull()
+                    parentPid = value.substringBefore(' ').toIntOrNull()?.takeIf { it >= 0 }
                     recognized = true
                 }
                 "Uid" -> {
                     uid = value.split(WHITESPACE).firstOrNull()?.toIntOrNull()
+                        ?.takeIf { it >= 0 }
                     recognized = true
                 }
                 "VmRSS" -> {
@@ -123,11 +124,12 @@ internal object ProcParsers {
     fun parseStatmResidentPages(text: String): Long? =
         text.trim().split(WHITESPACE).getOrNull(1)?.toLongOrNull()?.takeIf { it >= 0 }
 
-    fun parsePsPidCount(text: String): Int {
-        return text.lineSequence()
+    fun parsePsPids(text: String): Set<Int> = text.lineSequence()
             .map(String::trim)
-            .count { line -> line.isNotEmpty() && line.toIntOrNull()?.let { it > 0 } == true }
-    }
+            .mapNotNull { line -> line.toIntOrNull()?.takeIf { it > 0 } }
+            .toCollection(linkedSetOf())
+
+    fun parsePsPidCount(text: String): Int = parsePsPids(text).size
 
     fun parseCheckinTotalPssKb(text: String, expectedPid: Int): Long? {
         if (expectedPid <= 0) return null
@@ -137,7 +139,7 @@ internal object ProcParsers {
             if (fields.size <= CHECKIN_TOTAL_PSS_INDEX) return@firstNotNullOfOrNull null
             val version = fields[0].toIntOrNull() ?: return@firstNotNullOfOrNull null
             val pid = fields[1].toIntOrNull() ?: return@firstNotNullOfOrNull null
-            if (version < MIN_SUPPORTED_CHECKIN_VERSION || pid != expectedPid) {
+            if (version !in SUPPORTED_CHECKIN_VERSIONS || pid != expectedPid) {
                 return@firstNotNullOfOrNull null
             }
             fields[CHECKIN_TOTAL_PSS_INDEX].toLongOrNull()?.takeIf { it >= 0 }
@@ -154,7 +156,7 @@ internal object ProcParsers {
             val version = fields[0].toIntOrNull() ?: return@forEach
             val pid = fields[1].toIntOrNull() ?: return@forEach
             val pssKb = fields[CHECKIN_TOTAL_PSS_INDEX].toLongOrNull() ?: return@forEach
-            if (version >= MIN_SUPPORTED_CHECKIN_VERSION && pid in expectedPids && pssKb >= 0) {
+            if (version in SUPPORTED_CHECKIN_VERSIONS && pid in expectedPids && pssKb >= 0) {
                 values[pid] = pssKb
             }
         }
@@ -185,7 +187,7 @@ internal object ProcParsers {
     private const val MIN_SYSTEM_CPU_FIELDS = 8
     private const val CPU_IDLE_INDEX = 3
     private const val CPU_IOWAIT_INDEX = 4
-    private const val MIN_SUPPORTED_CHECKIN_VERSION = 3
+    private val SUPPORTED_CHECKIN_VERSIONS = 3..4
     private const val CHECKIN_TOTAL_PSS_INDEX = 18
     private const val MAX_COMMAND_LINE_CHARS = 4096
 }

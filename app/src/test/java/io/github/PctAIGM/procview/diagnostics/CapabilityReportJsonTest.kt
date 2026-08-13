@@ -3,6 +3,7 @@ package io.github.PctAIGM.procview.diagnostics
 import io.github.PctAIGM.procview.model.BackendMode
 import io.github.PctAIGM.procview.model.CapabilityQuality
 import io.github.PctAIGM.procview.model.CapabilityReport
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -29,8 +30,24 @@ class CapabilityReportJsonTest {
         assertTrue(encoded.contains("\"schemaVersion\": 1"))
         assertTrue(encoded.contains("\"bootId\": \"boot-test\""))
         assertTrue(encoded.contains("\"cpuAndRssReadableCount\": 99"))
+        assertTrue(encoded.contains("\"pssReadableCount\": 98"))
         assertTrue(encoded.contains("\"thermalSensorNames\": ["))
         assertFalse(encoded.contains("metricCoverage"))
+    }
+
+    @Test
+    fun metricCoverageUsesPsReferenceAndBoundsEnumerationRaces() {
+        val report = sampleReport().copy(
+            procPidCount = 100,
+            psPidCount = 200,
+            cpuAndRssReadableCount = 100,
+        )
+
+        assertEquals(200, report.metricCoverageReferenceCount)
+        assertEquals(0.5, report.metricCoverage, 0.0)
+        assertEquals(1.0, report.copy(psPidCount = 50).metricCoverage, 0.0)
+        assertEquals(0, report.copy(psPidCount = 0).metricCoverageReferenceCount)
+        assertEquals(0.0, report.copy(psPidCount = 0).metricCoverage, 0.0)
     }
 
     private fun sampleReport() = CapabilityReport(
@@ -41,7 +58,7 @@ class CapabilityReportJsonTest {
         serviceUid = 2000,
         servicePid = 321,
         backendMode = BackendMode.ADB,
-            protocolVersion = 2,
+        protocolVersion = 4,
         bootId = "boot-test",
         procStatReadable = true,
         procMeminfoReadable = true,
@@ -56,8 +73,10 @@ class CapabilityReportJsonTest {
         psCommandAvailable = true,
         pssCommandAvailable = true,
         pssValueParsed = true,
+        pssReadableCount = 98,
         pssProbeKb = 12_345L,
         pssProbeDurationMs = 15L,
+        pssBatchProbeDurationMs = 30L,
         thermalZoneCount = 2,
         thermalReadableCount = 1,
         thermalSensorNames = listOf("battery"),

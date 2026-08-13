@@ -39,8 +39,10 @@ data class CapabilityReport(
     val psCommandAvailable: Boolean,
     val pssCommandAvailable: Boolean,
     val pssValueParsed: Boolean,
+    val pssReadableCount: Int,
     val pssProbeKb: Long?,
     val pssProbeDurationMs: Long,
+    val pssBatchProbeDurationMs: Long,
     val thermalZoneCount: Int,
     val thermalReadableCount: Int,
     val thermalSensorNames: List<String>,
@@ -52,9 +54,21 @@ data class CapabilityReport(
     val processListTruncated: Boolean,
     val errorFlags: Int,
     val quality: CapabilityQuality,
+    val psSnapshotAvailable: Boolean = false,
+    val psSnapshotPidCount: Int = 0,
+    val psSnapshotCpuAndRssReadableCount: Int = 0,
+    val psSnapshotDurationMs: Long = 0L,
+    val psFallbackSelected: Boolean = false,
 ) {
+    val metricCoverageReferenceCount: Int
+        get() = psPidCount.takeIf { psCommandAvailable && it > 0 } ?: 0
+
     val metricCoverage: Double
-        get() = if (procPidCount == 0) 0.0 else cpuAndRssReadableCount.toDouble() / procPidCount
+        get() = if (metricCoverageReferenceCount <= 0) {
+            0.0
+        } else {
+            (cpuAndRssReadableCount.toDouble() / metricCoverageReferenceCount).coerceIn(0.0, 1.0)
+        }
 }
 
 enum class ShizukuPhase {
@@ -78,6 +92,7 @@ enum class ShizukuFailure {
     BIND_TIMEOUT,
     INVALID_BINDER,
     PROTOCOL_MISMATCH,
+    PROBE_CANCELLED,
     PROBE_FAILED,
 }
 

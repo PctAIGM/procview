@@ -51,8 +51,9 @@ class ShizukuProbeViewModel(
 
             ShizukuPhase.CHECKING,
             ShizukuPhase.CONNECTING,
-            ShizukuPhase.PROBING,
             -> Unit
+
+            ShizukuPhase.PROBING -> coordinator.cancelProbe()
         }
     }
 
@@ -63,6 +64,7 @@ class ShizukuProbeViewModel(
             _samplingPreview.value = SamplingPreviewState.Running
             try {
                 val result = withTimeout(PREVIEW_TIMEOUT_MS) {
+                    backend.probe()
                     val rawFrames = backend.frames(PREVIEW_CONFIG).take(PREVIEW_FRAME_COUNT).toList()
                     check(rawFrames.size == PREVIEW_FRAME_COUNT) { "sampling ended before two frames" }
                     val assembler = MetricFrameAssembler()
@@ -81,7 +83,7 @@ class ShizukuProbeViewModel(
                                 backend.readPss(targets)
                             } catch (cancellation: CancellationException) {
                                 throw cancellation
-                            } catch (_: Throwable) {
+                            } catch (_: Exception) {
                                 null
                             }
                             if (pss != null) {
@@ -129,7 +131,7 @@ class ShizukuProbeViewModel(
                 _samplingPreview.value = SamplingPreviewState.Failed(errorType = "Timeout")
             } catch (cancellation: CancellationException) {
                 throw cancellation
-            } catch (error: Throwable) {
+            } catch (error: Exception) {
                 _samplingPreview.value = SamplingPreviewState.Failed(
                     errorType = error::class.java.simpleName.ifBlank { "UnexpectedError" }
                         .take(MAX_ERROR_TYPE_CHARS),

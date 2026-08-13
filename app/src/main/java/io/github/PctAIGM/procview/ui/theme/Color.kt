@@ -2,8 +2,8 @@ package io.github.PctAIGM.procview.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-internal val IosBlueLight = Color(0xFF007AFF)
-internal val IosBlueDark = Color(0xFF0A84FF)
+internal val IosBlueLight = Color(0xFF006EDC)
+internal val IosBlueDark = Color(0xFF3D9BFF)
 internal val LightBackground = Color(0xFFF2F2F7)
 internal val LightSurface = Color(0xFFFFFFFF)
 internal val LightText = Color(0xFF1C1C1E)
@@ -17,5 +17,5 @@ internal val DarkSeparator = Color(0xFF48484A)
 
 val CpuMetricColor = Color(0xFF007AFF)
 val MemoryMetricColor = Color(0xFFAF52DE)
-val TemperatureMetricColor = Color(0xFFFF9500)
+val TemperatureMetricColor = Color(0xFFC66A00)
 val BatteryMetricColor = Color(0xFF248A3D)

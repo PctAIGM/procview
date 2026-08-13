@@ -1,0 +1,934 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "215709e2364e2b7561d857d17543e656",
+    "entities": [
+      {
+        "tableName": "capability_reports",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `probedAtWallTimeMs` INTEGER NOT NULL, `quality` TEXT NOT NULL, `metricCoverage` REAL NOT NULL, `backendMode` TEXT NOT NULL, `reportJson` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "probedAtWallTimeMs",
+            "columnName": "probedAtWallTimeMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "quality",
+            "columnName": "quality",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metricCoverage",
+            "columnName": "metricCoverage",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backendMode",
+            "columnName": "backendMode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportJson",
+            "columnName": "reportJson",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_capability_reports_probedAtWallTimeMs",
+            "unique": false,
+            "columnNames": [
+              "probedAtWallTimeMs"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_capability_reports_probedAtWallTimeMs` ON `${TABLE_NAME}` (`probedAtWallTimeMs`)"
+          }
+        ]
+      },
+      {
+        "tableName": "sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `note` TEXT NOT NULL, `status` TEXT NOT NULL, `pauseReason` TEXT, `startWallTimeMs` INTEGER NOT NULL, `endWallTimeMs` INTEGER, `startElapsedRealtimeNanos` INTEGER NOT NULL, `bootId` TEXT NOT NULL, `samplingProfile` TEXT NOT NULL, `deviceModel` TEXT NOT NULL, `androidVersion` TEXT NOT NULL, `romDisplay` TEXT NOT NULL, `procViewVersion` TEXT NOT NULL, `shizukuVersion` TEXT NOT NULL, `backendMode` TEXT NOT NULL, `capabilityReportId` INTEGER, `lastHeartbeatWallTimeMs` INTEGER NOT NULL, `lastSampleSequence` INTEGER, `peakSystemCpuBasisPoints` INTEGER, `minimumAvailableMemoryKb` INTEGER, `maximumBatteryTemperatureDeciC` INTEGER, `maximumThermalStatus` INTEGER, `elapsedDurationMs` INTEGER NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`capabilityReportId`) REFERENCES `capability_reports`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pauseReason",
+            "columnName": "pauseReason",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "startWallTimeMs",
+            "columnName": "startWallTimeMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endWallTimeMs",
+            "columnName": "endWallTimeMs",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "startElapsedRealtimeNanos",
+            "columnName": "startElapsedRealtimeNanos",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bootId",
+            "columnName": "bootId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "samplingProfile",
+            "columnName": "samplingProfile",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceModel",
+            "columnName": "deviceModel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "androidVersion",
+            "columnName": "androidVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "romDisplay",
+            "columnName": "romDisplay",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "procViewVersion",
+            "columnName": "procViewVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shizukuVersion",
+            "columnName": "shizukuVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backendMode",
+            "columnName": "backendMode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "capabilityReportId",
+            "columnName": "capabilityReportId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastHeartbeatWallTimeMs",
+            "columnName": "lastHeartbeatWallTimeMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSampleSequence",
+            "columnName": "lastSampleSequence",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "peakSystemCpuBasisPoints",
+            "columnName": "peakSystemCpuBasisPoints",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "minimumAvailableMemoryKb",
+            "columnName": "minimumAvailableMemoryKb",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "maximumBatteryTemperatureDeciC",
+            "columnName": "maximumBatteryTemperatureDeciC",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "maximumThermalStatus",
+            "columnName": "maximumThermalStatus",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "elapsedDurationMs",
+            "columnName": "elapsedDurationMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sessions_startWallTimeMs",
+            "unique": false,
+            "columnNames": [
+              "startWallTimeMs"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sessions_startWallTimeMs` ON `${TABLE_NAME}` (`startWallTimeMs`)"
+          },
+          {
+            "name": "index_sessions_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sessions_status` ON `${TABLE_NAME}` (`status`)"
+          },
+          {
+            "name": "index_sessions_capabilityReportId",
+            "unique": false,
+            "columnNames": [
+              "capabilityReportId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sessions_capabilityReportId` ON `${TABLE_NAME}` (`capabilityReportId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "capability_reports",
+            "onDelete": "SET NULL",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "capabilityReportId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "system_samples",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sessionId` TEXT NOT NULL, `sequence` INTEGER NOT NULL, `elapsedOffsetMs` INTEGER NOT NULL, `wallTimeMs` INTEGER NOT NULL, `cpuPercentBasisPoints` INTEGER, `memoryTotalKb` INTEGER, `memoryAvailableKb` INTEGER, `batteryLevelPercent` INTEGER, `batteryTemperatureDeciC` INTEGER, `chargingState` TEXT NOT NULL, `thermalStatus` INTEGER, `thermalValueMilliC` INTEGER, `thermalSensorName` TEXT, `screenInteractive` INTEGER NOT NULL, `samplingIntervalMs` INTEGER NOT NULL, `collectionDurationMs` INTEGER NOT NULL, `dataSource` TEXT NOT NULL, `frameFlags` INTEGER NOT NULL, PRIMARY KEY(`sessionId`, `sequence`), FOREIGN KEY(`sessionId`) REFERENCES `sessions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sequence",
+            "columnName": "sequence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "elapsedOffsetMs",
+            "columnName": "elapsedOffsetMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wallTimeMs",
+            "columnName": "wallTimeMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cpuPercentBasisPoints",
+            "columnName": "cpuPercentBasisPoints",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "memoryTotalKb",
+            "columnName": "memoryTotalKb",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "memoryAvailableKb",
+            "columnName": "memoryAvailableKb",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "batteryLevelPercent",
+            "columnName": "batteryLevelPercent",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "batteryTemperatureDeciC",
+            "columnName": "batteryTemperatureDeciC",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "chargingState",
+            "columnName": "chargingState",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "thermalStatus",
+            "columnName": "thermalStatus",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "thermalValueMilliC",
+            "columnName": "thermalValueMilliC",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "thermalSensorName",
+            "columnName": "thermalSensorName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "screenInteractive",
+            "columnName": "screenInteractive",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "samplingIntervalMs",
+            "columnName": "samplingIntervalMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "collectionDurationMs",
+            "columnName": "collectionDurationMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataSource",
+            "columnName": "dataSource",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frameFlags",
+            "columnName": "frameFlags",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "sessionId",
+            "sequence"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_system_samples_sessionId",
+            "unique": false,
+            "columnNames": [
+              "sessionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_system_samples_sessionId` ON `${TABLE_NAME}` (`sessionId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sessions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sessionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "process_identities",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sessionId` TEXT NOT NULL, `pid` INTEGER NOT NULL, `startTimeTicks` INTEGER NOT NULL, `parentPid` INTEGER NOT NULL, `uid` INTEGER, `packageName` TEXT, `processName` TEXT NOT NULL, `displayName` TEXT NOT NULL, `commandLine` TEXT NOT NULL, `isSystem` INTEGER NOT NULL, `isNative` INTEGER NOT NULL, `firstSeenOffsetMs` INTEGER NOT NULL, `lastSeenOffsetMs` INTEGER NOT NULL, FOREIGN KEY(`sessionId`) REFERENCES `sessions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pid",
+            "columnName": "pid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startTimeTicks",
+            "columnName": "startTimeTicks",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parentPid",
+            "columnName": "parentPid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "processName",
+            "columnName": "processName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "displayName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commandLine",
+            "columnName": "commandLine",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isSystem",
+            "columnName": "isSystem",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isNative",
+            "columnName": "isNative",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstSeenOffsetMs",
+            "columnName": "firstSeenOffsetMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSeenOffsetMs",
+            "columnName": "lastSeenOffsetMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_process_identities_sessionId_pid_startTimeTicks",
+            "unique": true,
+            "columnNames": [
+              "sessionId",
+              "pid",
+              "startTimeTicks"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_process_identities_sessionId_pid_startTimeTicks` ON `${TABLE_NAME}` (`sessionId`, `pid`, `startTimeTicks`)"
+          },
+          {
+            "name": "index_process_identities_sessionId",
+            "unique": false,
+            "columnNames": [
+              "sessionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_process_identities_sessionId` ON `${TABLE_NAME}` (`sessionId`)"
+          },
+          {
+            "name": "index_process_identities_packageName",
+            "unique": false,
+            "columnNames": [
+              "packageName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_process_identities_packageName` ON `${TABLE_NAME}` (`packageName`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sessions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sessionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "process_package_candidates",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`processIdentityId` INTEGER NOT NULL, `packageName` TEXT NOT NULL, `isPrimary` INTEGER NOT NULL, PRIMARY KEY(`processIdentityId`, `packageName`), FOREIGN KEY(`processIdentityId`) REFERENCES `process_identities`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "processIdentityId",
+            "columnName": "processIdentityId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPrimary",
+            "columnName": "isPrimary",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "processIdentityId",
+            "packageName"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_process_package_candidates_packageName",
+            "unique": false,
+            "columnNames": [
+              "packageName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_process_package_candidates_packageName` ON `${TABLE_NAME}` (`packageName`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "process_identities",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "processIdentityId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "process_samples",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sessionId` TEXT NOT NULL, `systemSampleSequence` INTEGER NOT NULL, `processIdentityId` INTEGER NOT NULL, `cpuPercentBasisPoints` INTEGER, `rssKb` INTEGER, `pssKb` INTEGER, `pssSampleElapsedRealtimeNanos` INTEGER, `processState` TEXT NOT NULL, `rank` INTEGER, `reasonKept` INTEGER NOT NULL, PRIMARY KEY(`sessionId`, `systemSampleSequence`, `processIdentityId`), FOREIGN KEY(`sessionId`) REFERENCES `sessions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`processIdentityId`) REFERENCES `process_identities`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "systemSampleSequence",
+            "columnName": "systemSampleSequence",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "processIdentityId",
+            "columnName": "processIdentityId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cpuPercentBasisPoints",
+            "columnName": "cpuPercentBasisPoints",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "rssKb",
+            "columnName": "rssKb",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pssKb",
+            "columnName": "pssKb",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "pssSampleElapsedRealtimeNanos",
+            "columnName": "pssSampleElapsedRealtimeNanos",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "processState",
+            "columnName": "processState",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rank",
+            "columnName": "rank",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "reasonKept",
+            "columnName": "reasonKept",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "sessionId",
+            "systemSampleSequence",
+            "processIdentityId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_process_samples_processIdentityId",
+            "unique": false,
+            "columnNames": [
+              "processIdentityId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_process_samples_processIdentityId` ON `${TABLE_NAME}` (`processIdentityId`)"
+          },
+          {
+            "name": "index_process_samples_sessionId_systemSampleSequence",
+            "unique": false,
+            "columnNames": [
+              "sessionId",
+              "systemSampleSequence"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_process_samples_sessionId_systemSampleSequence` ON `${TABLE_NAME}` (`sessionId`, `systemSampleSequence`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sessions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sessionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "process_identities",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "processIdentityId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "session_events",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sessionId` TEXT NOT NULL, `elapsedOffsetMs` INTEGER NOT NULL, `wallTimeMs` INTEGER NOT NULL, `type` TEXT NOT NULL, `payloadJson` TEXT, FOREIGN KEY(`sessionId`) REFERENCES `sessions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "elapsedOffsetMs",
+            "columnName": "elapsedOffsetMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wallTimeMs",
+            "columnName": "wallTimeMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_session_events_sessionId_elapsedOffsetMs",
+            "unique": false,
+            "columnNames": [
+              "sessionId",
+              "elapsedOffsetMs"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_session_events_sessionId_elapsedOffsetMs` ON `${TABLE_NAME}` (`sessionId`, `elapsedOffsetMs`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sessions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sessionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "pinned_targets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`stableKey` TEXT NOT NULL, `kind` TEXT NOT NULL, `packageName` TEXT, `processName` TEXT, `uid` INTEGER, `createdAtWallTimeMs` INTEGER NOT NULL, `alias` TEXT, PRIMARY KEY(`stableKey`))",
+        "fields": [
+          {
+            "fieldPath": "stableKey",
+            "columnName": "stableKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "processName",
+            "columnName": "processName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdAtWallTimeMs",
+            "columnName": "createdAtWallTimeMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alias",
+            "columnName": "alias",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "stableKey"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_pinned_targets_kind",
+            "unique": false,
+            "columnNames": [
+              "kind"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pinned_targets_kind` ON `${TABLE_NAME}` (`kind`)"
+          },
+          {
+            "name": "index_pinned_targets_packageName",
+            "unique": false,
+            "columnNames": [
+              "packageName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_pinned_targets_packageName` ON `${TABLE_NAME}` (`packageName`)"
+          }
+        ]
+      },
+      {
+        "tableName": "process_summaries",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sessionId` TEXT NOT NULL, `processIdentityId` INTEGER NOT NULL, `sampleCount` INTEGER NOT NULL, `peakCpuPercentBasisPoints` INTEGER, `peakRssKb` INTEGER, `peakPssKb` INTEGER, `bestRank` INTEGER, PRIMARY KEY(`sessionId`, `processIdentityId`), FOREIGN KEY(`sessionId`) REFERENCES `sessions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`processIdentityId`) REFERENCES `process_identities`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "processIdentityId",
+            "columnName": "processIdentityId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleCount",
+            "columnName": "sampleCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "peakCpuPercentBasisPoints",
+            "columnName": "peakCpuPercentBasisPoints",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "peakRssKb",
+            "columnName": "peakRssKb",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "peakPssKb",
+            "columnName": "peakPssKb",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "bestRank",
+            "columnName": "bestRank",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "sessionId",
+            "processIdentityId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_process_summaries_processIdentityId",
+            "unique": false,
+            "columnNames": [
+              "processIdentityId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_process_summaries_processIdentityId` ON `${TABLE_NAME}` (`processIdentityId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sessions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sessionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "process_identities",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "processIdentityId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '215709e2364e2b7561d857d17543e656')"
+    ]
+  }
+}
