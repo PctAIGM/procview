@@ -3,6 +3,10 @@
 This document records implementation clarifications accepted after the frozen
 product specification. The original specification remains unchanged.
 
+The user-requested Shizuku network-monitoring scope extension (2026-10-15),
+including its data/compatibility boundaries, is recorded in
+[`network-monitoring.md`](network-monitoring.md).
+
 ## Product and verification
 
 - Completion means the full Definition of Done, including the Xiaomi 17 Pro Max
@@ -54,3 +58,8 @@ product specification. The original specification remains unchanged.
   are reviewed but do not override the SDK 36 product contract.
 - Version 1 is `1.0.0`. Development artifacts use debug signing; release signing
   is supplied or explicitly generated at M6 and is never committed.
+- On 2026-10-15 the user chose to preserve the current ProcView debug key as
+  `app/debug.keystore`, explicitly shared with source for cross-machine upgrades.
+  Debug app/instrumentation builds pin and validate its certificate. See
+  [`development-signing.md`](development-signing.md) for older-key compatibility;
+  production release keys remain outside the repository.

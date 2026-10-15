@@ -24,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.Settings
@@ -95,6 +97,7 @@ import io.github.PctAIGM.procview.model.ShizukuFailure
 import io.github.PctAIGM.procview.model.ShizukuPhase
 import io.github.PctAIGM.procview.model.ShizukuUiState
 import io.github.PctAIGM.procview.ui.live.LiveDashboard
+import io.github.PctAIGM.procview.ui.network.NetworkScreen
 import io.github.PctAIGM.procview.ui.history.HistoryScreen
 import io.github.PctAIGM.procview.ui.settings.SettingsScreen
 import java.text.DateFormat
@@ -110,6 +113,7 @@ private enum class MainDestination(
     val unselectedIcon: ImageVector,
 ) {
     Live(R.string.nav_live, Icons.Filled.MonitorHeart, Icons.Outlined.MonitorHeart),
+    Network(R.string.nav_network, Icons.Filled.Wifi, Icons.Outlined.Wifi),
     History(R.string.nav_history, Icons.Filled.History, Icons.Outlined.History),
     Settings(R.string.nav_settings, Icons.Filled.Settings, Icons.Outlined.Settings),
 }
@@ -271,6 +275,13 @@ fun ProcViewApp(modifier: Modifier = Modifier) {
                                 },
                                 onDetailProcessKeysChanged =
                                     application.monitorRuntimeStore::setDetailProcessKeys,
+                            )
+                            MainDestination.Network -> NetworkScreen(
+                                contentPadding = contentPadding,
+                                repository = application.networkRepository,
+                                backendReady = shizukuState.phase == ShizukuPhase.AVAILABLE ||
+                                    shizukuState.phase == ShizukuPhase.PARTIAL,
+                                onSetup = { destination = MainDestination.Settings },
                             )
                             MainDestination.History -> HistoryScreen(
                                 contentPadding = contentPadding,

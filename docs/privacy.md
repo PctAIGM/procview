@@ -6,6 +6,13 @@ an upload service.
 
 ## Data collected locally
 
+When the user starts monitoring on the Network tab, ProcView also reads system
+UID upload/download counters and any readable TCP/UDP local/remote IP addresses,
+ports, states, and UID-to-package labels. These snapshots stay in memory and are
+not recorded in session history or included in exports. Reads stop when the tab
+is left or the app is backgrounded (an in-flight read may finish). There is no
+DNS lookup, packet-content capture, domain/URL collection, or VPN interception.
+
 Only after the user starts a monitoring session, ProcView may store:
 
 - whole-device CPU and memory counters;

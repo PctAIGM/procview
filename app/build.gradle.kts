@@ -1,3 +1,6 @@
+import java.security.KeyStore
+import java.security.MessageDigest
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -20,8 +23,18 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
+            signingConfig = signingConfigs.getByName("debug")
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
@@ -65,6 +78,38 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
+}
+
+/** The shared key is for development only. Fail rather than silently changing install identity. */
+abstract class VerifyDebugSigningKey : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val keystoreFile: RegularFileProperty
+
+    @get:Input
+    abstract val expectedCertificateSha256: Property<String>
+
+    @TaskAction
+    fun verify() {
+        val keyStore = KeyStore.getInstance(keystoreFile.get().asFile, "android".toCharArray())
+        check(keyStore.isKeyEntry("androiddebugkey")) { "ProcView development signing key is missing" }
+        val certificate = checkNotNull(keyStore.getCertificate("androiddebugkey"))
+        val actual = MessageDigest.getInstance("SHA-256").digest(certificate.encoded)
+            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        check(actual == expectedCertificateSha256.get()) {
+            "ProcView debug certificate changed: $actual. Restore app/debug.keystore; do not generate a new key."
+        }
+        logger.lifecycle("ProcView debug certificate SHA-256: $actual")
+    }
+}
+
+val verifyDebugSigningKey = tasks.register<VerifyDebugSigningKey>("verifyDebugSigningKey") {
+    keystoreFile.set(layout.projectDirectory.file("debug.keystore"))
+    expectedCertificateSha256.set("c9a77535daec4c4f56ee07c64bd7580e256ff361b23d7eb5298d91e7778cc75f")
+}
+
+tasks.matching { it.name == "preDebugBuild" || it.name == "preDebugAndroidTestBuild" }.configureEach {
+    dependsOn(verifyDebugSigningKey)
 }
 
 ksp {

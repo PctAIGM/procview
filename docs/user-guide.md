@@ -1,5 +1,20 @@
 # ProcView user guide
 
+## Network monitoring
+
+After authorizing Shizuku, open **Network** and tap **Start network monitoring**.
+Search by app, UID, IP, or port; sort by download, upload, or observed connections.
+Tap an app or **View destinations** for current TCP/UDP remote IP:port, local
+endpoint, and state. Traffic totals and connection addresses have independent
+read-status labels. Shared UID applications share a single total; unresolvable
+UIDs remain visible without an invented app identity.
+
+Totals come from Android's since-boot UID history, can update late, and are not
+real-time speed or per-destination counters. Short connections may be missed;
+domains and URLs are not captured. Reads stop on leaving this tab or backgrounding
+the app. Network data is not retained in session history or exports. See
+[`network-monitoring.md`](network-monitoring.md) for details and ROM limitations.
+
 ## 1. Prepare Shizuku
 
 1. Install Shizuku from an official channel.

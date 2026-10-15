@@ -30,8 +30,14 @@ from a source review alone, and do not reuse another application's signing key.
 
 ## 3. Signing outside the repository
 
-- Create a dedicated ProcView signing key in a protected directory outside the
-  repository, or supply an existing ProcView-only key. Never commit the key,
+This section concerns release builds. Debug builds intentionally share the
+ProcView-only development key in `app/debug.keystore`; see
+[`development-signing.md`](development-signing.md). It preserves the current
+debug signing identity across machines and must not be used as a production key.
+The `.gitignore` exception permits only this documented development keystore.
+
+- Create a dedicated ProcView release signing key in a protected directory outside the
+  repository, or supply an existing ProcView-only release key. Never commit that key,
   passwords, or a generated credentials file.
 - Align an unsigned release APK with the SDK's `zipalign`, then sign it with
   `apksigner`. Pass passwords through protected environment variables or an

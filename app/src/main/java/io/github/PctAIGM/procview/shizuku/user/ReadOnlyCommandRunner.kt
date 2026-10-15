@@ -69,6 +69,13 @@ internal class ReadOnlyCommandRunner {
         maxOutputBytes = MAX_PSS_BATCH_OUTPUT_BYTES,
     )
 
+    fun readNetworkStats(): CommandResult = execute(
+        // --full switches the recorder to persisted Complete history instead of since-boot totals.
+        command = listOf("/system/bin/dumpsys", "netstats", "--uid"),
+        timeoutMs = 5_000L,
+        maxOutputBytes = 4 * 1024 * 1024,
+    )
+
     fun close() {
         streamExecutor.shutdownNow()
     }

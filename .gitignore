@@ -30,6 +30,8 @@ captures/
 # Signing material and secrets
 *.jks
 *.keystore
+# Intentional, shared development key; release keys remain private and ignored.
+!/app/debug.keystore
 *.pem
 keystore.properties
 secrets.properties

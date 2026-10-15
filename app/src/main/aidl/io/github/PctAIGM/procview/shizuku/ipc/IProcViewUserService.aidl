@@ -14,4 +14,6 @@ interface IProcViewUserService {
     ProcessCatalogChunkParcel getCatalogChunk(long expectedRevision, int offset, int limit) = 4;
     PssResultParcel readPss(in ProcessKeyParcel[] keys) = 5;
     String getBootId() = 6;
+    // Bounded, typed JSON snapshot; no arbitrary command interface.
+    String readNetworkSnapshot() = 7;
 }

@@ -11,6 +11,11 @@ Accepted specification clarifications are recorded in
 
 ## Capabilities
 
+- Optional foreground Network tab for Shizuku UID upload/download totals and
+  current IPv4/IPv6 TCP/UDP remote IP:port snapshots, with independent ROM
+  availability states. See [`docs/network-monitoring.md`](docs/network-monitoring.md)
+  for system update delays, shared UIDs, and measurement limits.
+
 - Typed Shizuku UserService with bounded, fixed read-only procfs/PSS probes and
   a labelled Toybox `ps` fallback for restricted ROMs.
 - User-started `specialUse` foreground sessions with pause, resume, stop,
@@ -48,6 +53,13 @@ device gates in [`docs/verification-matrix.md`](docs/verification-matrix.md).
 Unsigned-build inspection, external-key signing, signature verification, and
 artifact hashing are defined in
 [`docs/release-checklist.md`](docs/release-checklist.md).
+
+Debug builds use the shared **ProcView-specific** `app/debug.keystore`, including
+Android Studio and CI builds. This fixed key and a pinned-certificate build check
+keep debug APKs from different machines compatible for upgrades. Include the
+keystore with the source; see [`docs/development-signing.md`](docs/development-signing.md)
+for its certificate fingerprint and the boundary for older, differently signed
+installations. Release keys remain external and private.
 
 ## Use and privacy
 

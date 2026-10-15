@@ -70,6 +70,9 @@ class ProcViewApplication : Application() {
     val packageResolver: AndroidPackageResolver by lazy {
         AndroidPackageResolver(packageManager)
     }
+    val networkRepository: io.github.PctAIGM.procview.network.NetworkRepository by lazy {
+        io.github.PctAIGM.procview.network.NetworkRepository(shizukuCoordinator, packageResolver)
+    }
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocaleController.wrap(base))

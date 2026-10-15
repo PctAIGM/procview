@@ -48,6 +48,20 @@ class AndroidPackageResolver(
         monotonicTimeMs = monotonicTimeMs,
     )
 
+    /** Resolve even UIDs with no currently running process; shared UIDs retain every candidate. */
+    suspend fun resolveUids(uids: Set<Int>): Map<Int, Pair<List<String>, List<String>>> =
+        withContext(Dispatchers.IO) {
+            uids.associateWith { uid ->
+                val packages = runCatching {
+                    uidPackagesCache.getOrLoad(uid) {
+                        packageManager.getPackagesForUid(uid).orEmpty()
+                            .filter(String::isNotBlank).distinct().sorted()
+                    }
+                }.getOrDefault(emptyList())
+                packages to packages.map { loadPackageMetadata(it).label ?: it }
+            }
+        }
+
     override suspend fun resolve(catalog: List<ProcessCatalogEntry>): List<ProcessPackageResolution> =
         withContext(Dispatchers.IO) {
             val uidPackages = mutableMapOf<Int, List<String>>()

@@ -31,6 +31,7 @@ import java.io.File
 @Keep
 class ProcViewUserService : IProcViewUserService.Stub {
     private val commandRunner = ReadOnlyCommandRunner()
+    private val networkReader = NetworkSnapshotReader(commandRunner)
     private val snapshotReader = ProcSnapshotReader()
     private val fallbackIdentityTracker = PsFallbackIdentityTracker()
     private val sampleLock = Any()
@@ -57,6 +58,10 @@ class ProcViewUserService : IProcViewUserService.Stub {
     constructor(@Suppress("UNUSED_PARAMETER") context: Context)
 
     override fun getProtocolVersion(): Int = PROTOCOL_VERSION
+
+    override fun readNetworkSnapshot(): String = kotlinx.serialization.json.Json.encodeToString(
+        io.github.PctAIGM.procview.network.NetworkSnapshot.serializer(), networkReader.read(),
+    )
 
     override fun getBootId(): String = ProcFileReader.readText(
         File("/proc/sys/kernel/random/boot_id"),
@@ -523,7 +528,7 @@ class ProcViewUserService : IProcViewUserService.Stub {
     )
 
     private companion object {
-        const val PROTOCOL_VERSION = 4
+        const val PROTOCOL_VERSION = 5
         const val MAX_CORE_PROC_BYTES = 128 * 1024
         const val MAX_BOOT_ID_BYTES = 256
         const val MAX_BOOT_ID_CHARS = 128

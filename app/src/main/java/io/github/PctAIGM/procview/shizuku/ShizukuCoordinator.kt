@@ -507,7 +507,7 @@ class ShizukuCoordinator(context: Context) {
         const val SHIZUKU_DOWNLOAD_URL = "https://shizuku.rikka.app/download/"
         const val USER_SERVICE_TAG = "procview-monitor"
         const val USER_SERVICE_PROCESS_SUFFIX = "monitor"
-        const val USER_SERVICE_VERSION = 4
+        const val USER_SERVICE_VERSION = 5
         const val MIN_SHIZUKU_API_VERSION = 13
         const val PERMISSION_REQUEST_CODE = 10_031
         const val BIND_TIMEOUT_MS = 10_000L

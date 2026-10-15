@@ -3,6 +3,7 @@
 | Gate | Evidence | Status |
 |---|---|---|
 | P0 build, unit test, lint | [`p0-build-baseline.md`](evidence/p0-build-baseline.md) | Passed |
+| Shizuku network monitoring extension | [`network-monitoring-readiness.md`](evidence/network-monitoring-readiness.md) | Parser/unit/build/lint verified; device/ROM accuracy pending |
 | M0 Xiaomi capability probe | [`m0-probe-readiness.md`](evidence/m0-probe-readiness.md) | Probe/typed sampling passed; long-run gates pending |
 | M1 typed sampling core | [`m1-sampling-core.md`](evidence/m1-sampling-core.md) | Debug build/unit verified; device accuracy pending |
 | M2 monitored-session lifecycle | [`m2-lifecycle-readiness.md`](evidence/m2-lifecycle-readiness.md) | Short device lifecycle passed; recovery/long-run pending |
